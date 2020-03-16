@@ -15,101 +15,12 @@ add.alpha <- function(col, alpha=1){
 
 
 
-###### Empirics #######
-# Read Data ---------------------------------------------------------------
-e_dat_con <- read.csv("../COVID-19/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Confirmed.csv")
-e_dat_dea <- read.csv("../COVID-19/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Deaths.csv")
-e_dat_rec <- read.csv("../COVID-19/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Recovered.csv")
-
-
-
-# First analysis ----------------------------------------------------------
-country <- 'Germany'
-
-plot(as.numeric(e_dat_con[e_dat_con$Country.Region==country,5:ncol(e_dat_con)]), ylab = 'Confirmed', xlab = "Date")
-lines(as.numeric(e_dat_dea[e_dat_dea$Country.Region==country,5:ncol(e_dat_con)]), ylab = 'Confirmed', xlab = "Date", type = 'b', col = 2)
-lines(as.numeric(e_dat_rec[e_dat_rec$Country.Region==country,5:ncol(e_dat_con)]), ylab = 'Confirmed', xlab = "Date", type = 'b', col = 3)
-
-plot(as.numeric(e_dat_con[e_dat_con$Country.Region==country,5:ncol(e_dat_con)]), ylab = 'Confirmed', xlab = "Date", log = 'y')
-lines(as.numeric(e_dat_dea[e_dat_dea$Country.Region==country,5:ncol(e_dat_con)]), ylab = 'Confirmed', xlab = "Date", type = 'b', col = 2)
-lines(as.numeric(e_dat_rec[e_dat_rec$Country.Region==country,5:ncol(e_dat_con)]), ylab = 'Confirmed', xlab = "Date", type = 'b', col = 3)
-
-
-# Estimate daily rate:
-
-growth_rates <- function(x){
-  return(x[2:length(x)]/x[1:(length(x)-1)]-1)
-}
-
-
-con_GER <- as.numeric(e_dat_con[e_dat_con$Country.Region==country,5:ncol(e_dat_con)])
-gr_GER <- growth_rates(as.numeric(e_dat_con[e_dat_con$Country.Region==country,5:ncol(e_dat_con)]))
-
-plot(gr_GER, type = 'h')
-
-hist(gr_GER, breaks = seq(0,3,0.1))
-
-plot(density(gr_GER[34:length(gr_GER)]))
-mean(gr_GER[34:length(gr_GER)])
-
-mean(gr_GER[10:length(gr_GER)], na.rm = T)
-
-
-# Breakpoint estimation ---------------------------------------------------
-
-log_gr_GER <- log(gr_GER)
-
-gr_dat <- data.frame(t = 1:length(gr_GER), log_gr_GER = log_gr_GER, gr_GER = gr_GER)
-gr_dat$log_gr_GER[is.finite(gr_dat$log_gr_GER)==F] <- NA
-
-dat  <- data.frame(t = 1:length(con_GER), con_GER = as.numeric(con_GER))
-dat$con_GER[dat$con_GER == 0] <- NA
-
-
-(lm1 <- lm(log(con_GER)~t, data = dat))
-exp(lm1$coefficients[2])-1
-
-# With breakpoint at T
-
-lm_res <- list()
-
-i<- 1
-for(T.break in 1:20){
-  for(T.break2 in 21:nrow(dat)){
-    lm_res[[i]] <- lm(log(con_GER)~ t + I(t>T.break)*t + I(t>T.break2)*t, data = dat)
-    i<-i+1
-  }
-}
-
-model_selct <- which.max(unlist(lapply(lm_res, function(x) summary(x)$r.squared)))
-
-par(mar=c(4.1,4.1,1.1,1.1))
-plot(con_GER)
-lines(as.numeric(names(exp(lm_res[[model_selct]]$fitted.values))),exp(lm_res[[model_selct]]$fitted.values), col = 2, type = 'l')
-legend('topleft', legend = c('confirmed cases', 'tri sectional log linear fit'), pch = c(1,NA), lty = c(NA, 1), col = c(1,2))
-
-plot(con_GER, log = 'y')
-lines(as.numeric(names(exp(lm_res[[model_selct]]$fitted.values))), exp(lm_res[[model_selct]]$fitted.values), col = 2, type = 'l')
-legend('topleft', legend = c('confirmed cases', 'tri sectional log linear fit'), pch = c(1,NA), lty = c(NA, 1), col = c(1,2))
-
-# Estimated growth rate:
-
-sum_best_model <- summary(lm_res[[model_selct]])
-
-a <- c(0,1,0,0,1,1)
-
-daily_growth <- exp(a%*%sum_best_model$coefficients[,1])-1
-
-log(2)/log(1+daily_growth)
-
-# y = (1+gr)^t
-# log(y) = t*log(1+gr)
 
 ###### Simulation #####
 # Parameters: -------------------------------------------------------------
 
 # population size:
-n <- 10000
+n <- 1000
 
 # initially infected
 i0 <- 10
@@ -117,7 +28,7 @@ i0 <- 10
 # number of days
 Tmax <- 200
 
-# initial average number of "close" encounters per person per day:
+# initial a_verage n_number of "close" e_ncounters (ane) per person per day:
 ane <- 80
 
 ### "Lockdown" parameters: 
@@ -128,7 +39,7 @@ ane_2 <- ane*(1-red_fac)
 t_lockdown <- 200
 
 # incubation period:
-Tinc <- 10
+Tinc <- 5
 
 # symptomatic period:
 Tsym <-  10
@@ -137,12 +48,12 @@ Tsym <-  10
 Tinf <- Tinc + Tsym
 
 # town clusters:
-n_town <- 1
-within_town <- 1
+n_town <- 4
+within_town <- 100
 
 # expected family size
-fam_size <- 2
-within_fam <- 1
+fam_size <- 4
+within_fam <- 100
 
 # probability of overall infecting "R0" (expected value)
 R0 <- 3.0
@@ -158,7 +69,7 @@ grid()
 
 ane*Tinf*p
 
-plot(seq(0,ane,1), dbinom(seq(0,ane,1), ane, prob = p), type = 'b', xlab = 'Number of infected', ylab = 'Probability', main = 'Probability of infecting X persons on one day', cex.main = 0.8)
+plot(seq(0,ane,1), dbinom(seq(0,ane,1), ane, prob = p), type = 'b', xlab = 'Number of infected', ylab = 'Probability', main = 'Probability of infecting X persons on one day', cex.main = 0.8, ylim =c(0,1))
 grid()
 
 lines(seq(0,ane_2,1), dbinom(seq(0,ane_2,1), ane_2, prob = p), type = 'b', xlab = 'Number of infected', ylab = 'Probability', main = 'Probability of infecting X persons on one day', cex.main = 0.8, col = 2)
@@ -285,6 +196,12 @@ pb$tick()
 
 ###### Evaluate ######
 
+
+## Single simulation:
+
+image(x = 1:Tmax, y = 1:n, t(as.matrix(inf_dat[1:n,])), col = rev(topo.colors(20)))
+
+
 ## Across simulations:
 
 # Total infected:
@@ -331,7 +248,7 @@ lines(cum_inf_mean, lwd = 2, col = 2)
 abline(v=t_lockdown, col = 2, lty = 2)
 
 plot(cum_inf_mean/n, lwd = 2, col = 2, type = 'l')
-lines(for_daddy_1000/1000, lwd = 2, col = 1, type = 'l', lty = 2)
+
 
 #Mean infection rate:
 plot(2:Tmax, (cum_inf_mean[2:Tmax]-cum_inf_mean[1:(Tmax-1)]), xlab = 'Day', ylab = 'Infection rate', type = 'h')
@@ -339,8 +256,6 @@ plot(2:Tmax, (cum_inf_mean[2:Tmax]-cum_inf_mean[1:(Tmax-1)]), xlab = 'Day', ylab
 temp <- (cum_inf_mean[2:Tmax]-cum_inf_mean[1:(Tmax-1)])
 
 plot(3:Tmax,temp[2:length(temp)]-temp[1:(length(temp)-1)], type = 'h')
-
-plot(2:Tmax, , xlab = 'Day', ylab = 'Infection rate', type = 'h')
 
 plot(2:Tmax, (cum_inf_mean[2:Tmax]-cum_inf_mean[1:(Tmax-1)])/cum_inf_mean[1:(Tmax-1)], xlab = 'Day', ylab = 'Infection rate', type = 'h')
 
