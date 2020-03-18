@@ -28,7 +28,7 @@ i0 <- 10
 # number of days
 Tmax <- 200
 
-# initial a_verage n_number of "close" e_ncounters (ane) per person per day:
+# initial average number of "close" encounters (ane) per person per day:
 ane <- 80
 
 ### "Lockdown" parameters: 
@@ -212,7 +212,7 @@ sd(tot_inf)
 
 hist(tot_inf)
 
-# Simultaneaous infected:
+# Simultaneous infected:
 sim_inf <- simplify2array(lapply(simu_res, function(x) colSums(x>0, na.rm = T)))
 dim(sim_inf)
 
@@ -250,7 +250,7 @@ abline(v=t_lockdown, col = 2, lty = 2)
 plot(cum_inf_mean/n, lwd = 2, col = 2, type = 'l')
 
 
-#Mean infection rate:
+# Mean infection rate:
 plot(2:Tmax, (cum_inf_mean[2:Tmax]-cum_inf_mean[1:(Tmax-1)]), xlab = 'Day', ylab = 'Infection rate', type = 'h')
 
 temp <- (cum_inf_mean[2:Tmax]-cum_inf_mean[1:(Tmax-1)])
@@ -272,15 +272,5 @@ lines(new_inf_quant[2,], type = 'l', ylim = c(0,n), lty = 1, lwd = 2)
 
 matplot(new_inf, type = 'l', col = add.alpha('blue', 0.3), lty = 1)
 lines(new_inf_mean, lwd = 2, col =2)
-
-
-
-
-plot(colSums(inf_dat==1, na.rm = T), type = 'h')
-#Immune:
-plot(colSums(is.na(inf_dat), na.rm = T), type = 's')
-# Total infected:
-sum(rowSums(inf_dat, na.rm = T)>0)
-
 
 
