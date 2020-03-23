@@ -135,7 +135,7 @@ plot_ly(y = ~Double , x = ~Country, data = est_growth, type = 'bar') %>%
   layout(yaxis = list(title = 'Estimated days to double'))
 
 plot_ly(y = ~Ten , x = ~Country, data = est_growth, type = 'bar') %>% 
-  layout(yaxis = list(title = 'Estimated days to increase by ten'))
+  layout(yaxis = list(title = 'Estimated days to increase by ten times'))
 
 
 # Estimate infection parameters ------------------------------------------

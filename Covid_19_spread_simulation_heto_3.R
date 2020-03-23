@@ -53,7 +53,7 @@ within_town <- 100
 
 # expected family size
 fam_size <- 4
-within_fam <- 100
+within_fam <- 1
 
 # probability of overall infecting "R0" (expected value)
 R0 <- 3.0
@@ -226,6 +226,7 @@ lines(sim_inf_quant[3,], type = 'l', ylim = c(0,n), lty = 2)
 abline(v=t_lockdown, col = 2, lty = 2)
 
 matplot(sim_inf, type = 'l', col = add.alpha('blue', 0.3), lty = 1, ylim = c(0,n))
+grid()
 lines(sim_inf_mean, lwd = 2, col =2)
 
 abline(v=t_lockdown, col = 2, lty = 2)
