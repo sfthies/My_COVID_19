@@ -29,17 +29,17 @@ i0 <- 10
 Tmax <- 200
 
 # initial average number of "close" encounters (ane) per person per day:
-ane <- 80
+ane <- 10
 
 ### "Lockdown" parameters: 
 # after measures are introduced reduction by factor
 red_fac <- 0.50
 ane_2 <- ane*(1-red_fac)
 # day of introducing measures:
-t_lockdown <- 200
+t_lockdown <- 2000
 
 # incubation period:
-Tinc <- 5
+Tinc <- 10
 
 # symptomatic period:
 Tsym <-  10
@@ -49,7 +49,7 @@ Tinf <- Tinc + Tsym
 
 # town clusters:
 n_town <- 4
-within_town <- 100
+within_town <- 1
 
 # expected family size
 fam_size <- 4
@@ -196,7 +196,7 @@ pb$tick()
 
 ###### Evaluate ######
 
-
+par(mar=c(4.1,4.1,1.1,1.1), mfrow = c(1,1))
 ## Single simulation:
 
 image(x = 1:Tmax, y = 1:n, t(as.matrix(inf_dat[1:n,])), col = rev(topo.colors(20)))
@@ -225,9 +225,11 @@ lines(sim_inf_quant[2,], type = 'l', ylim = c(0,n))
 lines(sim_inf_quant[3,], type = 'l', ylim = c(0,n), lty = 2)
 abline(v=t_lockdown, col = 2, lty = 2)
 
-matplot(sim_inf, type = 'l', col = add.alpha('blue', 0.3), lty = 1, ylim = c(0,n))
+matplot(sim_inf, type = 'l', col = add.alpha('blue', 0.3), lty = 1, ylim = c(0,n), ylab = 'Simultaneous infected', xlab = 'Day')
 grid()
 lines(sim_inf_mean, lwd = 2, col =2)
+legend('topright', lty = c(1,1), lwd = c(1,2), col = c(add.alpha('blue', 0.3), 'red'),
+       legend = c('Simulations', 'Mean'))
 
 abline(v=t_lockdown, col = 2, lty = 2)
 
@@ -243,10 +245,13 @@ polygon(c(1:Tmax, Tmax:1), c(cum_inf_quant[1,],rev(cum_inf_quant[3,])), border =
 lines(cum_inf_quant[2,], type = 'l', ylim = c(0,n), lty = 1, lwd = 2)
 abline(v=t_lockdown, col = 2, lty = 2)
 
-matplot(cum_inf,type = 'l', col = add.alpha('blue', 0.3), lty = 1, ylim = c(0, n))
+matplot(cum_inf,type = 'l', col = add.alpha('blue', 0.3), lty = 1, ylim = c(0, n), ylab = 'Cumulative infected', xlab = 'Day')
 grid()
 lines(cum_inf_mean, lwd = 2, col = 2)
 abline(v=t_lockdown, col = 2, lty = 2)
+legend('bottomright', lty = c(1,1), lwd = c(1,2), col = c(add.alpha('blue', 0.3), 'red'),
+       legend = c('Simulations', 'Mean'))
+
 
 plot(cum_inf_mean/n, lwd = 2, col = 2, type = 'l')
 
